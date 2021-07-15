@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"restapi-basic/helper"
 	"restapi-basic/model"
+
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type Category interface{}
@@ -68,6 +70,35 @@ func SelectAllCategory(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+func SelectOneCategory(w http.ResponseWriter, r *http.Request) {
+	db, err := helper.Connection()
+	params := mux.Vars(r)
+	category_id := params["id"]
+	if err != nil {
+		helper.Failed(err,"Failed to Connect Database")
+		log.Fatal(err)
+	}
+	var category model.TkCategory
+	res_uuid, err := uuid.Parse(category_id)
+	if err != nil{
+		log.Fatal(err)
+	}
+	category.CategoryId = res_uuid
+	result, err_insert := category.SelectOneCategory(db)
+	if err_insert != nil {
+		helper.Failed(err,"Failed to Select All Category")
+		log.Fatal(err_insert)
+	}
+
+	response := helper.Success(result,nil,"Select all category successfully")
+	json,err_json := json.Marshal(response)
+	if err_json != nil {
+		helper.Failed(err,"Failed to create response")
+		log.Fatal(err_json)
+	}
+	w.Write(json)
+}
+
 func SelectAllMenu(w http.ResponseWriter, r *http.Request) {
 	db, err := helper.Connection()
 
@@ -110,13 +141,13 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	category.LocationId = uuid.Nil
 	category.Isactive = "1"
 
-	category, err_update := category.UpdateCategory(db)
+	cat, err_update := category.UpdateCategory(db)
 	if err_update != nil {
 		helper.Failed(err,"Failed to Update Category")
 		log.Fatal(err_update)
 	}
 
-	response := helper.Success(category,nil,"Update category successfully")
+	response := helper.Success(cat,nil,"Update category successfully")
 	json,err_json := json.Marshal(response)
 	if err_json != nil {
 		helper.Failed(err,"Failed to create response")
@@ -124,3 +155,34 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(json)
 }
+
+func DeleteCategory(w http.ResponseWriter, r *http.Request) {
+	db, err := helper.Connection()
+	params := mux.Vars(r)
+	category_id := params["id"]
+	if err != nil {
+		helper.Failed(err,"Failed to Connect Database")
+		log.Fatal(err)
+	}
+	var category model.TkCategory
+	res_uuid, err := uuid.Parse(category_id)
+	if err != nil{
+		log.Fatal(err)
+	}
+	category.CategoryId = res_uuid
+	err_insert := category.DeleteCategory(db)
+	if err_insert != nil {
+		helper.Failed(err,"Failed to Delete Category")
+		log.Fatal(err_insert)
+	}
+
+	response := helper.Success(nil,nil,"Delete category successfully")
+	json,err_json := json.Marshal(response)
+	if err_json != nil {
+		helper.Failed(err,"Failed to create response")
+		log.Fatal(err_json)
+	}
+	w.Write(json)
+}
+
+
