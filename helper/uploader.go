@@ -3,12 +3,13 @@ package helper
 import (
 	"fmt"
 	"io"
+	"mime/multipart"
 	"os"
 	"path/filepath"
 )
 
 
-func Uploader(uploadedFile interface{}, handler interface{}, alias string) error{
+func Uploader(uploadedFile multipart.File, handler *multipart.FileHeader, alias string) error{
 	dir, err := os.Getwd()
 	if err != nil {
 		return err

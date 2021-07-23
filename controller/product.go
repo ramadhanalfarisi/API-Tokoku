@@ -25,17 +25,17 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 	var Product model.TkProduct
 
 	Product.ProductId = uuid.New()
-	Product.ProductName = r.FormValue("product_name")
-	Product.ProductDesc = r.FormValue("product_desc")
-	Product.ProductPrice = r.FormValue("product_price")
+	Product.ProductName = r.FormValue("productName")
+	Product.ProductDesc = r.FormValue("productDesc")
+	Product.ProductPrice = r.FormValue("productPrice")
 
-	res_uuid_cat, err := uuid.Parse(r.FormValue("category_id"))
+	res_uuid_cat, err := uuid.Parse(r.FormValue("categoryId"))
 	if err != nil {
 		log.Fatal(err)
 	}
 	Product.CategoryId = res_uuid_cat
 
-	res_uuid_loc, err := uuid.Parse(r.FormValue("location_id"))
+	res_uuid_loc, err := uuid.Parse(r.FormValue("locationId"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,9 +61,15 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 	if err_env != nil {
 		log.Fatal(err_env)
 	}
-	
-	filename := os.Getenv("BASE_URL") + "/files/"+uuid.
-	helper.Uploader(uploadedFile,handler,)
+
+	filename := os.Getenv("BASE_URL") + "/files/" + Product.ProductId.String()
+	err_upload := helper.Uploader(uploadedFile, handler, Product.ProductId.String())
+
+	if err_upload != nil {
+		log.Fatal(err_upload)
+	}
+
+	Product.ProductImage = filename
 
 	err_insert := Product.InsertProduct(db)
 	if err_insert != nil {
@@ -141,12 +147,56 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	var Product model.TkProduct
-	err_cat := json.NewDecoder(r.Body).Decode(&Product)
-
-	if err_cat != nil {
-		helper.Failed(err, "Failed to Decode JSON Body")
-		log.Fatal(err_cat)
+	res_uuid_prod, err := uuid.Parse(r.FormValue("productId"))
+	if err != nil {
+		log.Fatal(err)
 	}
+	Product.ProductId = res_uuid_prod
+	Product.ProductName = r.FormValue("productName")
+	Product.ProductDesc = r.FormValue("productDesc")
+	Product.ProductPrice = r.FormValue("productPrice")
+
+	res_uuid_cat, err := uuid.Parse(r.FormValue("categoryId"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	Product.CategoryId = res_uuid_cat
+
+	res_uuid_loc, err := uuid.Parse(r.FormValue("locationId"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	Product.LocationId = res_uuid_loc
+
+	arr_modifiers := r.Form["modifiers"]
+	for i, arr := range arr_modifiers {
+		res_uuid_mod, err := uuid.Parse(arr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		Product.Modifiers[i].ModifierParentId = res_uuid_mod
+	}
+
+	uploadedFile, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer uploadedFile.Close()
+
+	err_env := godotenv.Load()
+	if err_env != nil {
+		log.Fatal(err_env)
+	}
+
+	filename := os.Getenv("BASE_URL") + "/files/" + Product.ProductId.String()
+	err_upload := helper.Uploader(uploadedFile, handler, Product.ProductId.String())
+
+	if err_upload != nil {
+		log.Fatal(err_upload)
+	}
+
+	Product.ProductImage = filename
 	Product.LocationId = uuid.Nil
 
 	cat, err_update := Product.UpdateProduct(db)
