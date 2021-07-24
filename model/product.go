@@ -14,8 +14,8 @@ type TkProduct struct {
 	ProductImage    string             `json:"productImage"`
 	CategoryId      uuid.UUID          `json:"categoryId,omitempty"`
 	LocationId      uuid.UUID          `json:"locationId,omitempty"`
-	CategoryProduct *TkCategory         `gorm:"foreignKey:CategoryId;references:CategoryId" json:"categoryProduct,omitempty"`
-	Modifiers       []TkModifierParent `gorm:"foreignKey:ProductId;references:ProductId" json:"productModifier,omitempty"`
+	CategoryProduct *TkCategory        `gorm:"foreignKey:CategoryId;references:CategoryId" json:"categoryProduct,omitempty"`
+	Modifiers       []TkModifierParent `gorm:"many2many:tk_product_modifiers;foreignKey:ProductId;joinForeignKey:ProductId;References:ModifierParentId;JoinReferences:ModifierId" json:"modifiers,omitempty"`
 }
 
 func (product *TkProduct) InsertProduct(db *gorm.DB) error {
@@ -37,7 +37,7 @@ func (product *TkProduct) SelectAllProduct(db *gorm.DB) ([]TkProduct, error) {
 
 func (product *TkProduct) SelectOneProduct(db *gorm.DB) (TkProduct, error) {
 	var prod TkProduct
-	res := db.Where("product_id = ?",product.ProductId).Preload("CategoryProduct").Preload("Modifiers.ModifierChilds").Find(&prod)
+	res := db.Where("product_id = ?", product.ProductId).Preload("CategoryProduct").Preload("Modifiers.ModifierChilds").Find(&prod)
 	if res.Error != nil {
 		return prod, res.Error
 	}
@@ -48,13 +48,13 @@ func (product *TkProduct) UpdateProduct(db *gorm.DB) (TkProduct, error) {
 	var prod TkProduct
 
 	data_prod := map[string]interface{}{
-		"product_name" : product.ProductName,
-		"product_desc" : product.ProductDesc,
-		"product_price" : product.ProductPrice,
-		"product_image" : product.ProductImage,
-		"category_id" : product.CategoryId,
+		"product_name":  product.ProductName,
+		"product_desc":  product.ProductDesc,
+		"product_price": product.ProductPrice,
+		"product_image": product.ProductImage,
+		"category_id":   product.CategoryId,
 	}
-	res := db.Model(&prod).Where("product_id = ?",product.ProductId).Updates(data_prod)
+	res := db.Model(&prod).Where("product_id = ?", product.ProductId).Updates(data_prod)
 	if res.Error != nil {
 		return prod, res.Error
 	}
@@ -62,7 +62,7 @@ func (product *TkProduct) UpdateProduct(db *gorm.DB) (TkProduct, error) {
 }
 
 func (product *TkProduct) DeleteProduct(db *gorm.DB) error {
-	res := db.Where("product_id = ?",product.ProductId).Delete(product)
+	res := db.Where("product_id = ?", product.ProductId).Delete(product)
 	if res.Error != nil {
 		return res.Error
 	}

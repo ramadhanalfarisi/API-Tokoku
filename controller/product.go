@@ -42,12 +42,16 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 	Product.LocationId = res_uuid_loc
 
 	arr_modifiers := r.Form["modifiers"]
-	for i, arr := range arr_modifiers {
+	var modifiers []model.TkProductModifier
+	for _, arr := range arr_modifiers {
 		res_uuid_mod, err := uuid.Parse(arr)
 		if err != nil {
 			log.Fatal(err)
 		}
-		Product.Modifiers[i].ModifierParentId = res_uuid_mod
+		var modifier model.TkProductModifier
+		modifier.ProductId = Product.ProductId
+		modifier.ModifierId = res_uuid_mod
+		modifiers = append(modifiers, modifier)
 	}
 
 	uploadedFile, handler, err := r.FormFile("file")
@@ -75,6 +79,12 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 	if err_insert != nil {
 		helper.Failed(err, "Failed to Insert Product")
 		log.Fatal(err_insert)
+	}
+
+	err_insert_mod := model.InsertProductModifier(db, modifiers)
+	if err_insert_mod != nil {
+		helper.Failed(err, "Failed to Insert Modifier")
+		log.Fatal(err_insert_mod)
 	}
 
 	response := helper.Success(Product, nil, "Insert Product successfully")
@@ -169,12 +179,16 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	Product.LocationId = res_uuid_loc
 
 	arr_modifiers := r.Form["modifiers"]
-	for i, arr := range arr_modifiers {
+	var modifiers []model.TkProductModifier
+	for _, arr := range arr_modifiers {
 		res_uuid_mod, err := uuid.Parse(arr)
 		if err != nil {
 			log.Fatal(err)
 		}
-		Product.Modifiers[i].ModifierParentId = res_uuid_mod
+		var modifier model.TkProductModifier
+		modifier.ProductId = Product.ProductId
+		modifier.ModifierId = res_uuid_mod
+		modifiers = append(modifiers, modifier)
 	}
 
 	uploadedFile, handler, err := r.FormFile("file")
@@ -203,6 +217,20 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	if err_update != nil {
 		helper.Failed(err, "Failed to Update Product")
 		log.Fatal(err_update)
+	}
+
+	var productModifier model.TkProductModifier
+	productModifier.ProductId = res_uuid_prod
+	err_delete_mod := productModifier.DeleteProductModifier(db)
+	if err_delete_mod != nil {
+		helper.Failed(err, "Failed to Insert Modifier")
+		log.Fatal(err_delete_mod)
+	}
+
+	err_insert_mod := model.InsertProductModifier(db, modifiers)
+	if err_insert_mod != nil {
+		helper.Failed(err, "Failed to Insert Modifier")
+		log.Fatal(err_insert_mod)
 	}
 
 	response := helper.Success(cat, nil, "Update Product successfully")
