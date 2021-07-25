@@ -23,3 +23,45 @@ func (modifierParent *TkModifierParent) InsertModifierParent(db *gorm.DB) error 
 	}
 	return nil
 }
+
+func (modifierParent *TkModifierParent) SelectAllModifier(db *gorm.DB) ([]TkModifierParent, error) {
+	var modifiers []TkModifierParent
+	res := db.Preload("ModifierChilds").Find(&modifiers)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	return modifiers, nil
+}
+
+func (modifierParent *TkModifierParent) SelectOneModifier(db *gorm.DB) (TkModifierParent, error) {
+	var modifier TkModifierParent
+	res := db.Where("modifier_parent_id = ?",modifierParent.ModifierParentId).Preload("ModifierChilds").Find(&modifier)
+	if res.Error != nil {
+		return modifier, res.Error
+	}
+	return modifier, nil
+}
+
+func (modifierParent *TkModifierParent) UpdateModifier(db *gorm.DB) (TkModifierParent, error) {
+	var mod TkModifierParent
+
+	data_mod := map[string]interface{}{
+		"modifier_parent_name":  modifierParent.ModifierParentName,
+		"selected_min":  modifierParent.SelectedMin,
+		"selected_max": modifierParent.SelectedMax,
+		"modifier_parent_type": modifierParent.ModifierParentType,
+	}
+	res := db.Model(&mod).Where("modifier_parent_id = ?", modifierParent.ModifierParentId).Updates(data_mod)
+	if res.Error != nil {
+		return mod, res.Error
+	}
+	return modifierParent.SelectOneModifier(db)
+}
+
+func (modifierParent *TkModifierParent) DeleteModifier(db *gorm.DB) error {
+	res := db.Where("modifier_parent_id = ?",modifierParent.ModifierParentId).Find(modifierParent)
+	if res.Error != nil {
+		return res.Error
+	}
+	return nil
+}

@@ -80,8 +80,9 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 		helper.Failed(err, "Failed to Insert Product")
 		log.Fatal(err_insert)
 	}
-
-	err_insert_mod := model.InsertProductModifier(db, modifiers)
+	
+	var productModifier model.TkProductModifier
+	err_insert_mod := productModifier.InsertProductModifier(db, modifiers)
 	if err_insert_mod != nil {
 		helper.Failed(err, "Failed to Insert Modifier")
 		log.Fatal(err_insert_mod)
@@ -227,7 +228,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_delete_mod)
 	}
 
-	err_insert_mod := model.InsertProductModifier(db, modifiers)
+	err_insert_mod := productModifier.InsertProductModifier(db, modifiers)
 	if err_insert_mod != nil {
 		helper.Failed(err, "Failed to Insert Modifier")
 		log.Fatal(err_insert_mod)

@@ -12,7 +12,7 @@ type TkProductModifier struct {
 	ProductId      uuid.UUID         `json:"productId,omitempty"`
 }
 
-func InsertProductModifier(db *gorm.DB, productModifiers []TkProductModifier) error {
+func (productModifier *TkProductModifier) InsertProductModifier(db *gorm.DB, productModifiers []TkProductModifier) error {
 	modifier := db.Create(&productModifiers)
 	if modifier.Error != nil {
 		return modifier.Error

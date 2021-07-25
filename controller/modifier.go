@@ -50,7 +50,7 @@ func SelectAllModifier(w http.ResponseWriter, r *http.Request) {
 		helper.Failed(err,"Failed to Connect Database")
 		log.Fatal(err)
 	}
-	var Modifier model.TkModifier
+	var Modifier model.TkModifierParent
 
 	result, err_insert := Modifier.SelectAllModifier(db)
 	if err_insert != nil {
@@ -75,12 +75,12 @@ func SelectOneModifier(w http.ResponseWriter, r *http.Request) {
 		helper.Failed(err,"Failed to Connect Database")
 		log.Fatal(err)
 	}
-	var Modifier model.TkModifier
+	var Modifier model.TkModifierParent
 	res_uuid, err := uuid.Parse(Modifier_id)
 	if err != nil{
 		log.Fatal(err)
 	}
-	Modifier.ModifierId = res_uuid
+	Modifier.ModifierParentId = res_uuid
 	result, err_insert := Modifier.SelectOneModifier(db)
 	if err_insert != nil {
 		helper.Failed(err,"Failed to Select All Modifier")
@@ -103,16 +103,14 @@ func UpdateModifier(w http.ResponseWriter, r *http.Request) {
 		helper.Failed(err,"Failed to Connect Database")
 		log.Fatal(err)
 	}
-	var Modifier model.TkModifier
+	var Modifier model.TkModifierParent
 	err_cat := json.NewDecoder(r.Body).Decode(&Modifier)
 
 	if err_cat != nil {
 		helper.Failed(err,"Failed to Decode JSON Body")
 		log.Fatal(err_cat)
 	}
-	Modifier.Products = nil
-	Modifier.LocationId = uuid.Nil
-	Modifier.Isactive = "1"
+	Modifier.ProductId = uuid.Nil
 
 	cat, err_update := Modifier.UpdateModifier(db)
 	if err_update != nil {
@@ -137,12 +135,12 @@ func DeleteModifier(w http.ResponseWriter, r *http.Request) {
 		helper.Failed(err,"Failed to Connect Database")
 		log.Fatal(err)
 	}
-	var Modifier model.TkModifier
+	var Modifier model.TkModifierParent
 	res_uuid, err := uuid.Parse(Modifier_id)
 	if err != nil{
 		log.Fatal(err)
 	}
-	Modifier.ModifierId = res_uuid
+	Modifier.ModifierParentId = res_uuid
 	err_insert := Modifier.DeleteModifier(db)
 	if err_insert != nil {
 		helper.Failed(err,"Failed to Delete Modifier")
