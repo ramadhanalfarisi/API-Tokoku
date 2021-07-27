@@ -12,7 +12,6 @@ type TkModifierParent struct {
 	SelectedMin        uint8             `json:"selectedMin"`
 	SelectedMax        uint8             `json:"selectedMax"`
 	ModifierParentType string            `json:"modifierType"`
-	ProductId          uuid.UUID         `json:"productId,omitempty"`
 	ModifierChilds     []TkModifierChild `gorm:"many2many:tk_parent_child_modifiers;foreignKey:ModifierParentId;joinForeignKey:ModifierParentId;References:ModifierChildId;JoinReferences:ModifierChildId" json:"modifierChilds,omitempty"`
 }
 
@@ -59,7 +58,8 @@ func (modifierParent *TkModifierParent) UpdateModifier(db *gorm.DB) (TkModifierP
 }
 
 func (modifierParent *TkModifierParent) DeleteModifier(db *gorm.DB) error {
-	res := db.Where("modifier_parent_id = ?",modifierParent.ModifierParentId).Find(modifierParent)
+	var modParent TkModifierParent
+	res := db.Where("modifier_parent_id = ?",modifierParent.ModifierParentId).Find(&modParent)
 	if res.Error != nil {
 		return res.Error
 	}

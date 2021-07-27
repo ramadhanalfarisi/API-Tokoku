@@ -62,7 +62,8 @@ func (category *TkCategory) UpdateCategory(db *gorm.DB) (TkCategory, error) {
 }
 
 func (category *TkCategory) DeleteCategory(db *gorm.DB) error {
-	del := db.Where("category_id = ?", category.CategoryId).Delete(category)
+	var cat TkCategory
+	del := db.Where("category_id = ?", category.CategoryId).Delete(&cat)
 	if(del.Error != nil){
 		return del.Error
 	}

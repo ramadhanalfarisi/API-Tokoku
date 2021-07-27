@@ -62,7 +62,8 @@ func (product *TkProduct) UpdateProduct(db *gorm.DB) (TkProduct, error) {
 }
 
 func (product *TkProduct) DeleteProduct(db *gorm.DB) error {
-	res := db.Where("product_id = ?", product.ProductId).Delete(product)
+	var prod TkProduct
+	res := db.Where("product_id = ?", product.ProductId).Delete(&prod)
 	if res.Error != nil {
 		return res.Error
 	}

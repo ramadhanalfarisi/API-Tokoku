@@ -95,6 +95,7 @@ func InsertProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func SelectAllProduct(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +120,7 @@ func SelectAllProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func SelectOneProduct(w http.ResponseWriter, r *http.Request) {
@@ -148,6 +150,7 @@ func SelectOneProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func UpdateProduct(w http.ResponseWriter, r *http.Request) {
@@ -241,6 +244,7 @@ func UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func DeleteProduct(w http.ResponseWriter, r *http.Request) {
@@ -270,4 +274,5 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }

@@ -44,6 +44,7 @@ func InsertCategory(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func SelectAllCategory(w http.ResponseWriter, r *http.Request) {
@@ -68,6 +69,7 @@ func SelectAllCategory(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func SelectOneCategory(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +99,7 @@ func SelectOneCategory(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func SelectAllMenu(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +124,7 @@ func SelectAllMenu(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func UpdateCategory(w http.ResponseWriter, r *http.Request) {
@@ -154,6 +158,7 @@ func UpdateCategory(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func DeleteCategory(w http.ResponseWriter, r *http.Request) {
@@ -183,6 +188,7 @@ func DeleteCategory(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 
