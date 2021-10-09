@@ -29,7 +29,6 @@ func InsertCategory(w http.ResponseWriter, r *http.Request) {
 	}
 	category.Products = nil
 	category.CategoryId = uuid.New()
-	category.LocationId = uuid.New()
 
 	err_insert := category.InsertCategory(db)
 	if err_insert != nil {
