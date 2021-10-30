@@ -15,7 +15,6 @@ type TkUser struct {
 	UserLastname     string    `json:"userLastname,omitempty"`
 	UserRole         string    `json:"userRole,omitempty"`
 	UserImageProfile string    `json:"userImageProfile,omitempty"`
-	LocationId       string    `json:"locationId,omitempty"`
 	DateVerification time.Time `json:"dateVerification,omitempty"`
 	IsActive         string    `json:"isActive,omitempty"`
 }
@@ -30,7 +29,7 @@ func (user *TkUser) InsertUser(db *gorm.DB) error {
 
 func (user *TkUser) GetAllUser(db *gorm.DB) ([]TkUser, error) {
 	var resUser []TkUser
-	err := db.Find(&resUser)
+	err := db.Select("user_id", "user_email", "user_firstname", "user_lastname", "user_role", "user_image_profile", "date_verification", "is_active").Find(&resUser)
 	if err.Error != nil {
 		return nil, err.Error
 	}
@@ -39,7 +38,7 @@ func (user *TkUser) GetAllUser(db *gorm.DB) ([]TkUser, error) {
 
 func (user *TkUser) GetOneUser(db *gorm.DB) (TkUser, error) {
 	var resUser TkUser
-	err := db.Where("user_id = ?", user.UserId).Find(&resUser)
+	err := db.Select("user_id", "user_email", "user_firstname", "user_lastname", "user_role", "user_image_profile", "date_verification", "is_active").Where("user_id = ?", user.UserId).Find(&resUser)
 	if err.Error != nil {
 		return resUser, err.Error
 	}
@@ -58,6 +57,15 @@ func (user *TkUser) UpdateUser(db *gorm.DB, dataUser map[string]interface{}) (Tk
 func (user *TkUser) DeleteUser(db *gorm.DB) (TkUser, error) {
 	var resUser TkUser
 	err := db.Where("user_id = ?", user.UserId).Delete(&resUser)
+	if err.Error != nil {
+		return resUser, err.Error
+	}
+	return resUser, nil
+}
+
+func (user *TkUser) LoginUser(db *gorm.DB) (TkUser, error) {
+	var resUser TkUser
+	err := db.Select("user_id", "user_email", "user_role").Where("user_email = ? AND user_password = ? AND is_active = ?", user.UserEmail, user.UserPassword, "1").Find(&resUser)
 	if err.Error != nil {
 		return resUser, err.Error
 	}

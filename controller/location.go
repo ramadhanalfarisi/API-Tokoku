@@ -40,6 +40,7 @@ func InsertLocation(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func GetAllLocation(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +66,7 @@ func GetAllLocation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
 func GetOneLocation(w http.ResponseWriter, r *http.Request) {
@@ -99,35 +101,37 @@ func GetOneLocation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
 
-func UpdateLocation(w http.ResponseWriter, r *http.Request){
+func UpdateLocation(w http.ResponseWriter, r *http.Request) {
 	db, err := helper.Connection()
 
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	var location model.TkLocation
 	err_json := json.NewDecoder(r.Body).Decode(&location)
 
-	if err_json != nil{
+	if err_json != nil {
 		log.Fatal(err)
 	}
 
 	res, err := location.UpdateLocation(db)
 
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	response := helper.Success(res, err, "Update location successfully")
 	json_res, err := json.Marshal(response)
 
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	w.Write(json_res)
+	defer helper.CloseConnection(db)
 }
 
 func DeleteLocation(w http.ResponseWriter, r *http.Request) {
@@ -162,4 +166,5 @@ func DeleteLocation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+	defer helper.CloseConnection(db)
 }
