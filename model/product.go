@@ -8,12 +8,12 @@ import (
 type TkProduct struct {
 	gorm.Model
 	ProductId       uuid.UUID          `json:"ID"`
-	ProductName     string             `json:"productName"`
+	ProductName     string             `json:"productName" validate:"required"`
 	ProductDesc     string             `json:"productDesc"`
-	ProductPrice    string             `json:"productPrice"`
-	ProductImage    string             `json:"productImage"`
-	CategoryId      uuid.UUID          `json:"categoryId,omitempty"`
-	LocationId      uuid.UUID          `json:"locationId,omitempty"`
+	ProductPrice    float64            `json:"productPrice" validate:"required,numeric"`
+	ProductImage    string        `json:"productImage"`
+	CategoryId      uuid.UUID          `json:"categoryId,omitempty" validate:"required,uuid"`
+	UserId          uuid.UUID          `json:"userId,omitempty" validate:"required,uuid"`
 	CategoryProduct *TkCategory        `gorm:"foreignKey:CategoryId;references:CategoryId" json:"categoryProduct,omitempty"`
 	Modifiers       []TkModifierParent `gorm:"many2many:tk_product_modifiers;foreignKey:ProductId;joinForeignKey:ProductId;References:ModifierParentId;JoinReferences:ModifierId" json:"modifiers,omitempty"`
 }
@@ -28,7 +28,9 @@ func (product *TkProduct) InsertProduct(db *gorm.DB) error {
 
 func (product *TkProduct) SelectAllProduct(db *gorm.DB) ([]TkProduct, error) {
 	var prods []TkProduct
-	res := db.Preload("CategoryProduct").Preload("Modifiers.ModifierChilds").Find(&prods)
+	res := db.Preload("CategoryProduct", func(db *gorm.DB) *gorm.DB {
+		return db.Select("category_id", "category_name")
+	}).Preload("Modifiers.ModifierChilds").Find(&prods)
 	if res.Error != nil {
 		return prods, res.Error
 	}
@@ -37,7 +39,9 @@ func (product *TkProduct) SelectAllProduct(db *gorm.DB) ([]TkProduct, error) {
 
 func (product *TkProduct) SelectOneProduct(db *gorm.DB) (TkProduct, error) {
 	var prod TkProduct
-	res := db.Where("product_id = ?", product.ProductId).Preload("CategoryProduct").Preload("Modifiers.ModifierChilds").Find(&prod)
+	res := db.Where("product_id = ?", product.ProductId).Preload("CategoryProduct", func(db *gorm.DB) *gorm.DB {
+		return db.Select("category_id", "category_name")
+	}).Preload("Modifiers.ModifierChilds").Find(&prod)
 	if res.Error != nil {
 		return prod, res.Error
 	}
@@ -58,7 +62,7 @@ func (product *TkProduct) UpdateProduct(db *gorm.DB) (TkProduct, error) {
 	if res.Error != nil {
 		return prod, res.Error
 	}
-	return product.SelectOneProduct(db)
+	return prod.SelectOneProduct(db)
 }
 
 func (product *TkProduct) DeleteProduct(db *gorm.DB) error {

@@ -50,6 +50,7 @@ func MiddlewareJWT(handler http.Handler) http.Handler {
 			if !strings.Contains(resToken, "Bearer") {
 				response := helper.Failed("Token invalid", "Token invalid")
 				json, _ := json.Marshal(response)
+				rw.WriteHeader(http.StatusUnauthorized)
 				rw.Write(json)
 			} else {
 				tokenString := strings.Replace(resToken, "Bearer ", "", -1)
@@ -83,6 +84,7 @@ func MiddlewareJWT(handler http.Handler) http.Handler {
 		} else {
 			response := helper.Failed("Unauthorized", "Unauthorized")
 			json, _ := json.Marshal(response)
+			rw.WriteHeader(http.StatusUnauthorized)
 			rw.Write(json)
 		}
 	})

@@ -7,9 +7,10 @@ import (
 
 type TkLocation struct {
 	LocationId       uuid.UUID `json:"ID"`
-	LocationName     string    `json:"locationName,omitempty"`
-	LocationAddess   string    `json:"locationAddress,omitempty"`
-	LocationPhone    string    `json:"locationPhone,omitempty"`
+	UserId           uuid.UUID `json:"userId"`
+	LocationName     string    `json:"locationName,omitempty" validate:"required"`
+	LocationAddress  string    `json:"locationAddress,omitempty" validate:"required"`
+	LocationPhone    string    `json:"locationPhone,omitempty" validate:"required"`
 	LocationCity     string    `json:"locationCity,omitempty"`
 	LocationProvince string    `json:"locationProvince,omitempty"`
 	LocationCountry  string    `json:"locationCountry,omitempty"`
@@ -45,7 +46,7 @@ func (location *TkLocation) UpdateLocation(db *gorm.DB) (TkLocation, error) {
 	var loc TkLocation
 	data_loc := map[string]interface{}{
 		"location_name":     location.LocationName,
-		"location_address":  location.LocationAddess,
+		"location_address":  location.LocationAddress,
 		"location_phone":    location.LocationPhone,
 		"location_city":     location.LocationCity,
 		"location_province": location.LocationProvince,

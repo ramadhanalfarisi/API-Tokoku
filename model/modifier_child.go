@@ -8,8 +8,8 @@ import (
 type TkModifierChild struct {
 	gorm.Model
 	ModifierChildId     uuid.UUID `json:"ID"`
-	ModifierChildName   string    `json:"modifierName"`
-	ModifierChildPrice  float64   `json:"modifierPrice"`
+	ModifierChildName   string    `json:"modifierName" validate:"required"`
+	ModifierChildPrice  float64   `json:"modifierPrice" validate:"required, numeric"`
 	ModifierChildDesc   string    `json:"modifierDesc"`
 }
 

@@ -25,62 +25,106 @@ func getMD5Hash(text string) string {
 }
 
 func Register(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	db, err := helper.Connection()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var user model.TkUser
+	var user model.TkUserRegister
 	res := json.NewDecoder(r.Body).Decode(&user)
-	user.UserId = uuid.New()
-	user.UserPassword = getMD5Hash(user.UserPassword)
+	user.IsActive = "0"
+	user.UserRole = "owner"
+
 	if res != nil {
 		log.Fatal(res)
 	}
 
-	err_insert := user.InsertUser(db)
-	if err_insert != nil {
-		log.Fatal(err_insert)
+	errValidation := helper.Validate(user)
+
+	if errValidation != nil {
+		response := helper.FailedValidate("Invalid data", errValidation)
+
+		json, err := json.Marshal(response)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(json)
+	} else {
+		user.UserId = uuid.New()
+		user.UserPassword = getMD5Hash(user.UserPassword)
+		err_insert := user.InsertUser(db)
+		if err_insert != nil {
+			log.Fatal(err_insert)
+		}
+		response := helper.Success(nil, nil, "Success for register account")
+
+		json, err := json.Marshal(response)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(json)
 	}
-
-	response := helper.Success(nil, nil, "Success for register account")
-	json, err := json.Marshal(response)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	w.Write(json)
 	defer helper.CloseConnection(db)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
 	db, err := helper.Connection()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var user model.TkUser
+	var user model.TkUserLogin
 	res := json.NewDecoder(r.Body).Decode(&user)
-	user.UserPassword = getMD5Hash(user.UserPassword)
+
 	if res != nil {
 		log.Fatal(res)
 	}
 
-	result, err := user.LoginUser(db)
-	if err != nil {
-		log.Fatal(err)
+	errValidation := helper.Validate(user)
+
+	if errValidation != nil {
+		response := helper.FailedValidate("Invalid data", errValidation)
+
+		json, err := json.Marshal(response)
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(json)
+	} else {
+		user.UserPassword = getMD5Hash(user.UserPassword)
+		result, err := user.LoginUser(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if result == (model.TkUser{}) {
+			response := helper.Failed("Login Failed", "Account not found")
+			json, err := json.Marshal(response)
+			if err != nil {
+				log.Fatal(err)
+			}
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(json)
+		} else {
+			jwt := middleware.GenerateJWT(result)
+			response := ResponseJWT{
+				Token:   jwt,
+				Status:  "success",
+				Message: "Login Successfully",
+			}
+			json, err := json.Marshal(response)
+			if err != nil {
+				log.Fatal(err)
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write(json)
+		}
+
 	}
 
-	jwt := middleware.GenerateJWT(result)
-	response := ResponseJWT{
-		Token:   jwt,
-		Status:  "success",
-		Message: "Login Successfully",
-	}
-	json, err := json.Marshal(response)
-	if err != nil {
-		log.Fatal(err)
-	}
-	w.Write(json)
 }

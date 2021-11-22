@@ -8,10 +8,10 @@ import (
 type TkModifierParent struct {
 	gorm.Model
 	ModifierParentId   uuid.UUID         `json:"ID"`
-	ModifierParentName string            `json:"modifierName"`
-	SelectedMin        uint8             `json:"selectedMin"`
-	SelectedMax        uint8             `json:"selectedMax"`
-	ModifierParentType string            `json:"modifierType"`
+	ModifierParentName string            `json:"modifierName" validate:"required"`
+	SelectedMin        uint8             `json:"selectedMin" validate:"ltcsfield=InnerStructField.SelectedMax"`
+	SelectedMax        uint8             `json:"selectedMax" validate:"gtcsfield=InnerStructField.SelectedMin"`
+	ModifierParentType string            `json:"modifierType" validate:"required"`
 	ModifierChilds     []TkModifierChild `gorm:"many2many:tk_parent_child_modifiers;foreignKey:ModifierParentId;joinForeignKey:ModifierParentId;References:ModifierChildId;JoinReferences:ModifierChildId" json:"modifierChilds,omitempty"`
 }
 

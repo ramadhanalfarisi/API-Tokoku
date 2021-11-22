@@ -12,7 +12,12 @@ func Success(data interface{}, error interface{}, message string) Response {
 	return response
 }
 
+func FailedValidate(error interface{}, message []string) Response {
+	response := Response{"status": "failed", "errors": error, "message": message}
+	return response
+}
+
 func Failed(error interface{}, message string) Response {
-	response := Response{"status": "success", "errors": error, "message": message}
+	response := Response{"status": "failed", "errors": error, "message": message}
 	return response
 }

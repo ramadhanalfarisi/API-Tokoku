@@ -1,25 +1,43 @@
 package model
 
 import (
-	"time"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type TkUser struct {
-	UserId           uuid.UUID `json:"ID"`
-	UserEmail        string    `json:"userEmail,omitempty"`
-	UserPassword     string    `json:"userPassword,omitempty"`
-	UserFirstname    string    `json:"userFirstname,omitempty"`
-	UserLastname     string    `json:"userLastname,omitempty"`
-	UserRole         string    `json:"userRole,omitempty"`
-	UserImageProfile string    `json:"userImageProfile,omitempty"`
-	DateVerification time.Time `json:"dateVerification,omitempty"`
-	IsActive         string    `json:"isActive,omitempty"`
+	UserId              uuid.UUID `json:"ID"`
+	UserEmail           string    `json:"userEmail,omitempty"`
+	UserPassword        string    `json:"userPassword,omitempty"`
+	ConfirmUserPassword string    `json:"confirmUserPassword,omitempty"`
+	UserFirstname       string    `json:"userFirstname,omitempty"`
+	UserLastname        string    `json:"userLastname,omitempty"`
+	UserRole            string    `json:"userRole,omitempty"`
+	UserImageProfile    string    `json:"userImageProfile,omitempty"`
+	DateVerification    string    `json:"dateVerification,omitempty"`
+	IsActive            string    `json:"isActive,omitempty"`
 }
 
-func (user *TkUser) InsertUser(db *gorm.DB) error {
+type TkUserRegister struct {
+	UserId              uuid.UUID `json:"ID"`
+	UserEmail           string    `json:"userEmail,omitempty" validate:"required,email"`
+	UserPassword        string    `json:"userPassword,omitempty" validate:"required"`
+	ConfirmUserPassword string    `json:"confirmUserPassword,omitempty" validate:"required,eqfield=UserPassword"`
+	UserFirstname       string    `json:"userFirstname,omitempty" validate:"required,alpha"`
+	UserLastname        string    `json:"userLastname,omitempty" validate:"required,alpha"`
+	UserRole            string    `json:"userRole,omitempty" validate:"required,alpha"`
+	UserImageProfile    interface{}    `json:"userImageProfile,omitempty"`
+	DateVerification    string    `json:"dateVerification,omitempty"`
+	IsActive            string    `json:"isActive,omitempty"`
+}
+
+type TkUserLogin struct {
+	UserEmail           string    `json:"userEmail,omitempty" validate:"required,email"`
+	UserPassword        string    `json:"userPassword,omitempty" validate:"required"`
+}
+
+
+func (user *TkUserRegister) InsertUser(db *gorm.DB) error {
 	result := db.Create(user)
 	if result.Error != nil {
 		return result.Error
@@ -63,7 +81,7 @@ func (user *TkUser) DeleteUser(db *gorm.DB) (TkUser, error) {
 	return resUser, nil
 }
 
-func (user *TkUser) LoginUser(db *gorm.DB) (TkUser, error) {
+func (user *TkUserLogin) LoginUser(db *gorm.DB) (TkUser, error) {
 	var resUser TkUser
 	err := db.Select("user_id", "user_email", "user_role").Where("user_email = ? AND user_password = ? AND is_active = ?", user.UserEmail, user.UserPassword, "1").Find(&resUser)
 	if err.Error != nil {

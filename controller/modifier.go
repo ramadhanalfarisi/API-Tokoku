@@ -32,32 +32,43 @@ func InsertModifier(w http.ResponseWriter, r *http.Request) {
 		child.ModifierChildId = uuid.New()
 	}
 
-	err_insert := Modifier.InsertModifierParent(db)
-	if err_insert != nil {
-		log.Fatal(err_insert)
-	}
-
-	var modifierChildParents []model.TkParentChildModifiers
-	for _, child := range Modifier.ModifierChilds {
-		var mod_child_parent model.TkParentChildModifiers
-		mod_child_parent.ModifierParentId = Modifier.ModifierParentId
-		mod_child_parent.ModifierChildId = child.ModifierChildId
-		modifierChildParents = append(modifierChildParents, mod_child_parent)
-	}
-	if modifierChildParents != nil{
-		err := model.InsertModifierChildParent(db,modifierChildParents)
+	validateModifiers := helper.Validate(Modifier)
+	if validateModifiers != nil {
+		response := helper.FailedValidate("Invalid Data", validateModifiers)
+		json, err := json.Marshal(response)
 		if err != nil {
 			log.Fatal(err)
 		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(json)
+	} else {
+		err_insert := Modifier.InsertModifierParent(db)
+		if err_insert != nil {
+			log.Fatal(err_insert)
+		}
+
+		var modifierChildParents []model.TkParentChildModifiers
+		for _, child := range Modifier.ModifierChilds {
+			var mod_child_parent model.TkParentChildModifiers
+			mod_child_parent.ModifierParentId = Modifier.ModifierParentId
+			mod_child_parent.ModifierChildId = child.ModifierChildId
+			modifierChildParents = append(modifierChildParents, mod_child_parent)
+		}
+		if modifierChildParents != nil {
+			err := model.InsertModifierChildParent(db, modifierChildParents)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		response := helper.Success(Modifier, nil, "Insert Modifier successfully")
+		json, err_json := json.Marshal(response)
+		if err_json != nil {
+			log.Fatal(err_json)
+		}
+		w.Write(json)
 	}
 
-
-	response := helper.Success(Modifier,nil,"Insert Modifier successfully")
-	json,err_json := json.Marshal(response)
-	if err_json != nil {
-		log.Fatal(err_json)
-	}
-	w.Write(json)
 	defer helper.CloseConnection(db)
 }
 
@@ -74,8 +85,8 @@ func SelectAllModifier(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_insert)
 	}
 
-	response := helper.Success(result,nil,"Select all Modifier successfully")
-	json,err_json := json.Marshal(response)
+	response := helper.Success(result, nil, "Select all Modifier successfully")
+	json, err_json := json.Marshal(response)
 	if err_json != nil {
 		log.Fatal(err_json)
 	}
@@ -92,7 +103,7 @@ func SelectOneModifier(w http.ResponseWriter, r *http.Request) {
 	}
 	var Modifier model.TkModifierParent
 	res_uuid, err := uuid.Parse(Modifier_id)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	Modifier.ModifierParentId = res_uuid
@@ -101,8 +112,8 @@ func SelectOneModifier(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_insert)
 	}
 
-	response := helper.Success(result,nil,"Select all Modifier successfully")
-	json,err_json := json.Marshal(response)
+	response := helper.Success(result, nil, "Select all Modifier successfully")
+	json, err_json := json.Marshal(response)
 	if err_json != nil {
 		log.Fatal(err_json)
 	}
@@ -123,50 +134,61 @@ func UpdateModifier(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_cat)
 	}
 
-	cat, err_update := Modifier.UpdateModifier(db)
-	if err_update != nil {
-		log.Fatal(err_update)
-	}
+	validateModifiers := helper.Validate(Modifier)
+	if validateModifiers != nil {
+		response := helper.FailedValidate("Invalid Data", validateModifiers)
+		json, err := json.Marshal(response)
+		if err != nil {
+			log.Fatal(err)
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(json)
+	} else {
+		cat, err_update := Modifier.UpdateModifier(db)
+		if err_update != nil {
+			log.Fatal(err_update)
+		}
 
-	var modifierChilds []model.TkModifierChild
-	var modifierChildParents []model.TkParentChildModifiers
-	for _, child := range Modifier.ModifierChilds {
-		var modifierChild model.TkModifierChild
-		modifierChild.ModifierChildId = child.ModifierChildId
-		modifierChild.ModifierChildName = child.ModifierChildName
-		modifierChild.ModifierChildPrice = child.ModifierChildPrice
-		modifierChild.ModifierChildDesc = child.ModifierChildDesc
-		_,err := modifierChild.SelectOneModifierChild(db)
-		if err != nil{
-			var modifierChildParent model.TkParentChildModifiers
-			modifierChildParent.ModifierParentId = Modifier.ModifierParentId
-			modifierChildParent.ModifierChildId = child.ModifierChildId
-			modifierChilds = append(modifierChilds, modifierChild)
-			modifierChildParents = append(modifierChildParents, modifierChildParent)
-		}else{
-			err := modifierChild.UpdateModifierChild(db)
-			if err != nil{
-				log.Fatal(err)
+		var modifierChilds []model.TkModifierChild
+		var modifierChildParents []model.TkParentChildModifiers
+		for _, child := range Modifier.ModifierChilds {
+			var modifierChild model.TkModifierChild
+			modifierChild.ModifierChildId = child.ModifierChildId
+			modifierChild.ModifierChildName = child.ModifierChildName
+			modifierChild.ModifierChildPrice = child.ModifierChildPrice
+			modifierChild.ModifierChildDesc = child.ModifierChildDesc
+			_, err := modifierChild.SelectOneModifierChild(db)
+			if err != nil {
+				var modifierChildParent model.TkParentChildModifiers
+				modifierChildParent.ModifierParentId = Modifier.ModifierParentId
+				modifierChildParent.ModifierChildId = child.ModifierChildId
+				modifierChilds = append(modifierChilds, modifierChild)
+				modifierChildParents = append(modifierChildParents, modifierChildParent)
+			} else {
+				err := modifierChild.UpdateModifierChild(db)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 		}
-	}
 
-	err_mod_child := model.InsertModifierChild(db,modifierChilds)
-	if err_mod_child != nil{
-		log.Fatal(err_mod_child)
-	}
+		err_mod_child := model.InsertModifierChild(db, modifierChilds)
+		if err_mod_child != nil {
+			log.Fatal(err_mod_child)
+		}
 
-	err_mod_child_parent := model.InsertModifierChildParent(db,modifierChildParents)
-	if err_mod_child_parent != nil{
-		log.Fatal(err_mod_child_parent)
-	}
+		err_mod_child_parent := model.InsertModifierChildParent(db, modifierChildParents)
+		if err_mod_child_parent != nil {
+			log.Fatal(err_mod_child_parent)
+		}
 
-	response := helper.Success(cat,nil,"Update Modifier successfully")
-	json,err_json := json.Marshal(response)
-	if err_json != nil {
-		log.Fatal(err_json)
+		response := helper.Success(cat, nil, "Update Modifier successfully")
+		json, err_json := json.Marshal(response)
+		if err_json != nil {
+			log.Fatal(err_json)
+		}
+		w.Write(json)
 	}
-	w.Write(json)
 	defer helper.CloseConnection(db)
 }
 
@@ -179,7 +201,7 @@ func DeleteModifier(w http.ResponseWriter, r *http.Request) {
 	}
 	var Modifier model.TkModifierParent
 	res_uuid, err := uuid.Parse(Modifier_id)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 	Modifier.ModifierParentId = res_uuid
@@ -188,13 +210,11 @@ func DeleteModifier(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err_insert)
 	}
 
-	response := helper.Success(nil,nil,"Delete Modifier successfully")
-	json,err_json := json.Marshal(response)
+	response := helper.Success(nil, nil, "Delete Modifier successfully")
+	json, err_json := json.Marshal(response)
 	if err_json != nil {
 		log.Fatal(err_json)
 	}
 	w.Write(json)
 	defer helper.CloseConnection(db)
 }
-
-
